@@ -3,35 +3,38 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D))]
+[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))] 
 public class PlayerController : MonoBehaviour
 {
     public float walkSpeed = 5f; // Normal walking speed
     public float runSpeed = 8f;  // Running speed
+    public float airWalkSpeed = 3f;
+    public float jumpImpulse = 10f;
     private Vector2 moveInput;   // Stores player movement input
+    TouchingDirections touchingDirections;
 
     // Property to determine current movement speed
-    public float currentMoveSpeed 
-    { 
-        get 
+   public float CurrentMoveSpeed 
+{
+    get
+    {
+        if (IsMoving && !touchingDirections.IsOnWall)
         {
-            if (IsMoving) // If the player is moving
+            if (touchingDirections.IsGrounded)
             {
-                if (IsRunning) // If the player is running
-                {
+                if (IsRunning)
                     return runSpeed;
-                } 
-                else // If the player is walking
-                {
+                else
                     return walkSpeed;
-                }
             }
-            else 
-            {
-                return 0; // Player is idle
-            }
-        } 
+            // Air Move
+            return airWalkSpeed;
+        }
+        // Idle speed is 0
+        return 0;
     }
+}
+
 
     [SerializeField]
     private bool _isMoving = false;
@@ -81,19 +84,20 @@ public class PlayerController : MonoBehaviour
 
     private Rigidbody2D rb;
     private Animator animator;
-
+  
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();  // Get Rigidbody2D component
         animator = GetComponent<Animator>(); // Get Animator component
+        touchingDirections = GetComponent<TouchingDirections>();
     }
 
-   private void FixedUpdate()
-{
-    // Move the player using the calculated movement speed
-    rb.velocity = new Vector2(moveInput.x * currentMoveSpeed, rb.velocity.y);
-    animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
-}
+    private void FixedUpdate()
+    {
+        // Move the player using the calculated movement speed
+        rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y);
+        animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
+    }
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -125,6 +129,15 @@ public class PlayerController : MonoBehaviour
         else if (context.canceled)
         {
             IsRunning = false; // Disable running
+        }
+    }
+
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.started && touchingDirections.IsGrounded) 
+        {
+            animator.SetTrigger(AnimationStrings.jump);
+            rb.velocity = new Vector2(rb.velocity.x, jumpImpulse); 
         }
     }
 }
