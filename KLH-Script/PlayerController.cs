@@ -12,29 +12,24 @@ public class PlayerController : MonoBehaviour
     public float jumpImpulse = 10f;
     private Vector2 moveInput;   // Stores player movement input
     TouchingDirections touchingDirections;
+    private Rigidbody2D rb;
+    private Animator animator;
 
-    // Property to determine current movement speed
-   public float CurrentMoveSpeed 
-{
-    get
+    public float CurrentMoveSpeed 
     {
-        if (IsMoving && !touchingDirections.IsOnWall)
+        get
         {
-            if (touchingDirections.IsGrounded)
+            if (IsMoving && !touchingDirections.IsOnWall)
             {
-                if (IsRunning)
-                    return runSpeed;
-                else
-                    return walkSpeed;
+                if (touchingDirections.IsGrounded)
+                {
+                    return IsRunning ? runSpeed : walkSpeed;
+                }
+                return airWalkSpeed; // Air move speed
             }
-            // Air Move
-            return airWalkSpeed;
+            return 0; // Idle speed
         }
-        // Idle speed is 0
-        return 0;
     }
-}
-
 
     [SerializeField]
     private bool _isMoving = false;
@@ -45,7 +40,8 @@ public class PlayerController : MonoBehaviour
         private set
         {
             _isMoving = value;
-            animator.SetBool("isMoving", value); // Update animator parameter
+            if (animator != null) 
+                animator.SetBool(AnimationStrings.isMoving, value);
         }
     }
 
@@ -58,11 +54,11 @@ public class PlayerController : MonoBehaviour
         private set
         {
             _isRunning = value;
-            animator.SetBool("isRunning", value); // Update animator parameter
+            if (animator != null) 
+                animator.SetBool(AnimationStrings.isRunning, value);
         }
     }
 
-    // Player direction variables
     public bool _isFacingRight = true;
 
     public bool IsFacingRight 
@@ -70,11 +66,9 @@ public class PlayerController : MonoBehaviour
         get { return _isFacingRight; } 
         private set
         {
-            if (_isFacingRight != value) // Check if the direction has changed
+            if (_isFacingRight != value) 
             {
-                _isFacingRight = value; // Update the facing direction
-                
-                // 🔧 FIX: Ensure scale doesn't go to zero or cause rendering issues
+                _isFacingRight = value; 
                 Vector3 newScale = transform.localScale;
                 newScale.x = Mathf.Abs(newScale.x) * (_isFacingRight ? 1 : -1);
                 transform.localScale = newScale;
@@ -82,62 +76,56 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
-    private Rigidbody2D rb;
-    private Animator animator;
-  
     private void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();  // Get Rigidbody2D component
-        animator = GetComponent<Animator>(); // Get Animator component
+        rb = GetComponent<Rigidbody2D>();
+        animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
     }
 
     private void FixedUpdate()
     {
-        // Move the player using the calculated movement speed
         rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y);
-        animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
+        if (animator != null)
+            animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
     }
 
     public void OnMove(InputAction.CallbackContext context)
     {
-        moveInput = context.ReadValue<Vector2>(); // Read movement input
-        IsMoving = moveInput != Vector2.zero; // Check if the player is moving
-        SetFacingDirection(moveInput); // Update the facing direction
+        moveInput = context.ReadValue<Vector2>();
+        IsMoving = moveInput != Vector2.zero;
+        SetFacingDirection(moveInput);
     }
 
     private void SetFacingDirection(Vector2 moveInput)
     {
         if (moveInput.x > 0 && !IsFacingRight)
-        {
-            // Face right
             IsFacingRight = true;
-        }
         else if (moveInput.x < 0 && IsFacingRight)
-        {
-            // Face left
             IsFacingRight = false;
-        }
     }
 
     public void OnRun(InputAction.CallbackContext context)
     {
-        if (context.started)
-        {
-            IsRunning = true; // Enable running
-        }
-        else if (context.canceled)
-        {
-            IsRunning = false; // Disable running
-        }
+        if (context.started) IsRunning = true;
+        else if (context.canceled) IsRunning = false;
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.started && touchingDirections.IsGrounded) 
         {
-            animator.SetTrigger(AnimationStrings.jump);
-            rb.velocity = new Vector2(rb.velocity.x, jumpImpulse); 
+            if (animator != null)
+                animator.SetTrigger(AnimationStrings.jumpTrigger); // Updated
+            rb.velocity = new Vector2(rb.velocity.x, jumpImpulse);
+        }
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            animator.SetTrigger(AnimationStrings.attackTrigger); // Updated
         }
     }
 }
