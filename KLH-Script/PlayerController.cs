@@ -15,21 +15,37 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
 
-    public float CurrentMoveSpeed 
+   public float CurrentMoveSpeed
+{
+    get
     {
-        get
+        if (CanMove)
         {
             if (IsMoving && !touchingDirections.IsOnWall)
             {
                 if (touchingDirections.IsGrounded)
                 {
-                    return IsRunning ? runSpeed : walkSpeed;
+                    if (IsRunning)
+                        return runSpeed;
+                    else
+                        return walkSpeed;
                 }
-                return airWalkSpeed; // Air move speed
+                else
+                {
+                    // Air Move
+                    return airWalkSpeed;
+                }
             }
-            return 0; // Idle speed
+            // Idle speed is 0
+            return 0;
+        }
+        else
+        {
+            return 0;
         }
     }
+}
+
 
     [SerializeField]
     private bool _isMoving = false;
@@ -76,6 +92,15 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
+    public bool CanMove
+{
+    get 
+    { 
+        return animator.GetBool(AnimationStrings.canMove); 
+    }
+}
+
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -113,7 +138,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.started && touchingDirections.IsGrounded) 
+        if (context.started && touchingDirections.IsGrounded && CanMove) 
         {
             if (animator != null)
                 animator.SetTrigger(AnimationStrings.jumpTrigger); // Updated
