@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour
     TouchingDirections touchingDirections;
     public enum WalkableDirection { Right, Left }
     private WalkableDirection _walkDirection;
-    private Vector2 walkDirectionVector;
+    private Vector2 walkDirectionVector = Vector2.right;
 
     public WalkableDirection WalkDirection
     {
@@ -46,7 +46,28 @@ public class Enemy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(walkSpeed * Vector2.right.x, rb.velocity.y);
+        if(touchingDirections.IsGrounded && touchingDirections.IsOnWall)
+        {
+            FlipDirection();
+        }
+
+        rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
+    }
+
+        private void FlipDirection()
+    {
+        if (WalkDirection == WalkableDirection.Right)
+        {
+            WalkDirection = WalkableDirection.Left;
+        }
+        else if (WalkDirection == WalkableDirection.Left)
+        {
+            WalkDirection = WalkableDirection.Right;
+        }
+        else
+        {
+            Debug.LogError("Current walkable direction is not set to legal values of Right or Left");
+        }
     }
 
     // Start is called before the first frame update
