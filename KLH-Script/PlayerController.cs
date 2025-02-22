@@ -150,7 +150,10 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            animator.SetTrigger(AnimationStrings.attackTrigger); // Updated
+            animator.SetTrigger(AnimationStrings.attackTrigger); 
         }
     }
+
+    
+    
 }
