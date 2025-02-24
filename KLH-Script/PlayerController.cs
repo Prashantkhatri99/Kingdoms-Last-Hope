@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
     {
         if (CanMove)
         {
-            if (IsMoving && !touchingDirections.IsOnWall)
+            if (IsMoving && !touchingDirections.IsOnWall)//player can move
             {
                 if (touchingDirections.IsGrounded)
                 {
