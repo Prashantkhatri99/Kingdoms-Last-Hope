@@ -13,11 +13,20 @@ public class DetectionZone : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        detectedColliders.Add(collision);
+if (collision.gameObject.CompareTag("Player")) // Replace "Player" with the correct tag
+{
+    Debug.Log("Added one: " + collision.gameObject.name);
+    detectedColliders.Add(collision);
+}
+
+       
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        detectedColliders.Remove(collision);
+        if(collision.gameObject.CompareTag("Player")){
+                    detectedColliders.Remove(collision);
+        }
+
     }
 }

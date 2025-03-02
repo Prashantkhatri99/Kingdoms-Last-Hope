@@ -6,10 +6,14 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public float walkSpeed = 3f;
+    public float attackCooldown = 1.5f; // Time between attacks
     public DetectionZone attackZone;
-    Rigidbody2D rb;
-    TouchingDirections touchingDirections;
-    Animator animator;
+    private Rigidbody2D rb;
+    private TouchingDirections touchingDirections;
+    private Animator animator;
+    private Transform target;
+    private bool isAttacking = false;
+
     public enum WalkableDirection { Right, Left }
     private WalkableDirection _walkDirection;
     private Vector2 walkDirectionVector = Vector2.right;
@@ -22,34 +26,23 @@ public class Enemy : MonoBehaviour
             if (_walkDirection != value)
             {
                 // Flip the character's direction
-                gameObject.transform.localScale = new Vector2(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y);
-            
-                // Update movement direction
-                if (value == WalkableDirection.Right)
-                {
-                    walkDirectionVector = Vector2.right;
-                }
-                
-                else if (value == WalkableDirection.Left)
-                {
-                     walkDirectionVector = Vector2.left;
-                }
+                transform.localScale = new Vector2(transform.localScale.x * -1, transform.localScale.y);
+                walkDirectionVector = (value == WalkableDirection.Right) ? Vector2.right : Vector2.left;
             }
-          // Assign new direction
-            _walkDirection = value; }
-    }
-    public bool _hasTarget = false;
-
-    public bool HasTarget 
-    { 
-        get{return _hasTarget;} 
-        private set
-        {
-            _hasTarget = value;
-            animator. SetBool(AnimationStrings. hasTarget, value);
+            _walkDirection = value;
         }
     }
 
+    private bool _hasTarget = false;
+    public bool HasTarget
+    {
+        get { return _hasTarget; }
+        private set
+        {
+            _hasTarget = value;
+            animator.SetBool(AnimationStrings.hasTarget, value);
+        }
+    }
 
     private void Awake()
     {
@@ -58,43 +51,69 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-        // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        HasTarget = attackZone.detectedColliders.Count > 0;
+        if (attackZone.detectedColliders.Count > 0)
+        {
+            if (!HasTarget)
+            {
+                HasTarget = true;
+                target = attackZone.detectedColliders[0].transform; // Assign target
+            }
+
+            if (!isAttacking)
+            {
+                MoveTowardTarget(); // Move toward player
+            }
+
+            if (!isAttacking)
+            {
+                StartCoroutine(Attack()); // Start attack cycle
+            }
+        }
+        else
+        {
+            HasTarget = false;
+            target = null;
+        }
     }
 
     private void FixedUpdate()
     {
-        if(touchingDirections.IsGrounded && touchingDirections.IsOnWall)
+        if (!isAttacking && !HasTarget)
         {
-            FlipDirection();
+            if (touchingDirections.IsGrounded && touchingDirections.IsOnWall)
+            {
+                FlipDirection();
+            }
+            rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
         }
+    }
 
+    private void MoveTowardTarget()
+    {
+        if (target == null) return;
+
+        float direction = target.position.x - transform.position.x;
+        WalkDirection = (direction > 0) ? WalkableDirection.Right : WalkableDirection.Left;
         rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
     }
 
-        private void FlipDirection()
+    private IEnumerator Attack()
     {
-        if (WalkDirection == WalkableDirection.Right)
-        {
-            WalkDirection = WalkableDirection.Left;
-        }
-        else if (WalkDirection == WalkableDirection.Left)
-        {
-            WalkDirection = WalkableDirection.Right;
-        }
-        else
-        {
-            Debug.LogError("Current walkable direction is not set to legal values of Right or Left");
-        }
+        isAttacking = true;
+        rb.velocity = Vector2.zero; // Stop movement
+        animator.SetTrigger(AnimationStrings.attackTrigger);
+        Debug.Log("Enemy attacking!");
+
+        yield return new WaitForSeconds(attackCooldown);
+
+        isAttacking = false;
+        rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
     }
 
-    // Start is called before the first frame update
-    void Start()
+    private void FlipDirection()
     {
-        
+        WalkDirection = (WalkDirection == WalkableDirection.Right) ? WalkableDirection.Left : WalkableDirection.Right;
     }
-
-
 }
