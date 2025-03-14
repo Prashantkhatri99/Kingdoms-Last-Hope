@@ -11,7 +11,7 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
-    private Transform target;
+    private Transform target; //dodod
     private bool isAttacking = false;
 
     public enum WalkableDirection { Right, Left }
