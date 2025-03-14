@@ -26,7 +26,7 @@ public class SceneController : MonoBehaviour
 
     public void LoadScene(string SceneName)
     {
-        SceneManager.LoadSceneAsync(SceneName);
+        SceneManager.LoadSceneAsync(SceneName); // making sure the player goes to new scene
     }
  
 }
