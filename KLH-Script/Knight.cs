@@ -6,6 +6,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public float walkSpeed = 3f;
+    public float walkStopRate = 0.6f;
     public float attackCooldown = 1.5f; // Time between attacks
     public DetectionZone attackZone;
     private Rigidbody2D rb;
@@ -43,6 +44,8 @@ public class Enemy : MonoBehaviour
             animator.SetBool(AnimationStrings.hasTarget, value);
         }
     }
+
+    private bool CanMove => !isAttacking; // Define CanMove based on isAttacking state
 
     private void Awake()
     {
@@ -86,7 +89,11 @@ public class Enemy : MonoBehaviour
             {
                 FlipDirection();
             }
-            rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
+
+            if (CanMove)
+                rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
+            else
+                rb.velocity = new Vector2(Mathf.Lerp(rb.velocity.x, 0, walkStopRate * Time.deltaTime), rb.velocity.y);
         }
     }
 
