@@ -12,7 +12,7 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
-    private Transform target; //dodod
+    private Transform target; 
     private bool isAttacking = false;
 
     public enum WalkableDirection { Right, Left }
@@ -45,7 +45,10 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private bool CanMove => !isAttacking; // Define CanMove based on isAttacking state
+    public bool CanMove
+    {
+        get { return animator.GetBool(AnimationStrings.canMove); }
+    }
 
     private void Awake()
     {
