@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))] 
+[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))]
 public class PlayerController : MonoBehaviour
 {
     public float walkSpeed = 5f; // Normal walking speed
@@ -15,37 +15,39 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
 
-   public float CurrentMoveSpeed
-{
-    get
+    public bool isOnPlatform;  // Added variable
+    public Rigidbody2D platformRb;  // Added variable
+
+    public float CurrentMoveSpeed
     {
-        if (CanMove)
+        get
         {
-            if (IsMoving && !touchingDirections.IsOnWall)//player can move
+            if (CanMove)
             {
-                if (touchingDirections.IsGrounded)
+                if (IsMoving && !touchingDirections.IsOnWall)//player can move
                 {
-                    if (IsRunning)
-                        return runSpeed;
+                    if (touchingDirections.IsGrounded)
+                    {
+                        if (IsRunning)
+                            return runSpeed;
+                        else
+                            return walkSpeed;
+                    }
                     else
-                        return walkSpeed;
+                    {
+                        // Air Move
+                        return airWalkSpeed;
+                    }
                 }
-                else
-                {
-                    // Air Move
-                    return airWalkSpeed;
-                }
+                // Idle speed is 0
+                return 0;
             }
-            // Idle speed is 0
-            return 0;
-        }
-        else
-        {
-            return 0;
+            else
+            {
+                return 0;
+            }
         }
     }
-}
-
 
     [SerializeField]
     private bool _isMoving = false;
@@ -93,12 +95,12 @@ public class PlayerController : MonoBehaviour
     }
 
     public bool CanMove
-{
-    get 
-    { 
-        return animator.GetBool(AnimationStrings.canMove); 
+    {
+        get 
+        { 
+            return animator.GetBool(AnimationStrings.canMove); 
+        }
     }
-}
 
     public bool IsAlive
     {
@@ -107,7 +109,6 @@ public class PlayerController : MonoBehaviour
             return animator.GetBool(AnimationStrings.isAlive);
         }
     }
-
 
     private void Awake()
     {
@@ -118,7 +119,19 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        rb.velocity = new Vector2(moveInput.x * CurrentMoveSpeed, rb.velocity.y);
+        float targetSpeed = CurrentMoveSpeed;  // Define targetSpeed based on CurrentMoveSpeed
+        
+        // Apply movement based on whether the player is on a platform
+        if (isOnPlatform && platformRb != null)  // Ensure platformRb is not null before using it
+        {
+            // Add platform's velocity to the player's velocity
+            rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y); 
+        }
+        else
+        {
+            rb.velocity = new Vector2(targetSpeed, rb.velocity.y);
+        }
+        
         if (animator != null)
             animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
     }
@@ -126,7 +139,7 @@ public class PlayerController : MonoBehaviour
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
-        if(IsAlive)
+        if (IsAlive)
         {
             IsMoving = moveInput != Vector2.zero;
             SetFacingDirection(moveInput);
@@ -135,7 +148,6 @@ public class PlayerController : MonoBehaviour
         {
             IsMoving = false;
         }
-      
     }
 
     private void SetFacingDirection(Vector2 moveInput)
@@ -169,7 +181,4 @@ public class PlayerController : MonoBehaviour
             animator.SetTrigger(AnimationStrings.attackTrigger); 
         }
     }
-
-    
-    
 }
