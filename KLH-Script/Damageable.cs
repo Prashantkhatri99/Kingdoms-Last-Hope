@@ -5,6 +5,7 @@ using UnityEngine;
 public class Damageable : MonoBehaviour
 {
     private Animator animator;
+    private PlayerController playerController; // Reference to PlayerController
 
     [SerializeField]
     private int _maxHealth = 100;
@@ -20,7 +21,14 @@ public class Damageable : MonoBehaviour
     public int Health
     {
         get { return _health; }
-        set { _health = value; }
+        set 
+        { 
+            _health = Mathf.Clamp(value, 0, MaxHealth); // Ensure health never goes below 0
+            if (_health <= 0 && IsAlive)
+            {
+                Die(); // Call the Die function when health is zero
+            }
+        }
     }
 
     [SerializeField]
@@ -28,10 +36,12 @@ public class Damageable : MonoBehaviour
     public bool IsAlive
     {
         get { return _isAlive; }
-        set { _isAlive = value;
-                animator. SetBool(AnimationStrings. isAlive, value);
-                Debug. Log("IsAlive set " + value);
-            }
+        set 
+        { 
+            _isAlive = value;
+            animator.SetBool(AnimationStrings.isAlive, value);
+            Debug.Log("IsAlive set " + value);
+        }
     }
 
     [SerializeField]
@@ -42,27 +52,20 @@ public class Damageable : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        playerController = GetComponent<PlayerController>(); // Get PlayerController component
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-    }
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (isInvincible)
         {
             if (timeSinceHit > invincibilityTime)
             {
-                // Remove invincibility
                 isInvincible = false;
                 timeSinceHit = 0;
             }
             timeSinceHit += Time.deltaTime;
         }
-        Hit(10);
     }
 
     public void Hit(int damage)
@@ -71,6 +74,19 @@ public class Damageable : MonoBehaviour
         {
             Health -= damage;
             isInvincible = true;
+        }
+    }
+
+    private void Die()
+    {
+        IsAlive = false;
+        if (playerController != null)
+        {
+            playerController.SendMessage("Die"); // Call Die() in PlayerController
+        }
+        else
+        {
+            Debug.LogWarning("No PlayerController found on this GameObject.");
         }
     }
 }
