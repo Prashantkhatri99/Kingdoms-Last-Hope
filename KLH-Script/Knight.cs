@@ -8,11 +8,14 @@ public class Enemy : MonoBehaviour
     public float walkSpeed = 3f;
     public float walkStopRate = 0.6f;
     public float attackCooldown = 1.5f; // Time between attacks
+    public int attackDamage = 10; // Damage dealt per attack
     public DetectionZone attackZone;
+    
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
     private Transform target; 
+    private Damageable targetHealth; // Store the Damageable component
     private bool isAttacking = false;
 
     public enum WalkableDirection { Right, Left }
@@ -26,7 +29,6 @@ public class Enemy : MonoBehaviour
         {
             if (_walkDirection != value)
             {
-                // Flip the character's direction
                 transform.localScale = new Vector2(transform.localScale.x * -1, transform.localScale.y);
                 walkDirectionVector = (value == WalkableDirection.Right) ? Vector2.right : Vector2.left;
             }
@@ -65,6 +67,7 @@ public class Enemy : MonoBehaviour
             {
                 HasTarget = true;
                 target = attackZone.detectedColliders[0].transform; // Assign target
+                targetHealth = target.GetComponent<Damageable>(); // Get Damageable component
             }
 
             if (!isAttacking)
@@ -81,6 +84,7 @@ public class Enemy : MonoBehaviour
         {
             HasTarget = false;
             target = null;
+            targetHealth = null;
         }
     }
 
@@ -116,10 +120,18 @@ public class Enemy : MonoBehaviour
         animator.SetTrigger(AnimationStrings.attackTrigger);
         Debug.Log("Enemy attacking!");
 
-        yield return new WaitForSeconds(attackCooldown);
+        yield return new WaitForSeconds(0.5f); // Wait before applying damage
+
+        // Apply damage if target is still in range
+        if (targetHealth != null && targetHealth.IsAlive)
+        {
+            targetHealth.Hit(attackDamage);
+            Debug.Log("Enemy dealt " + attackDamage + " damage!");
+        }
+
+        yield return new WaitForSeconds(attackCooldown - 0.5f); // Wait for remaining cooldown
 
         isAttacking = false;
-        rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
     }
 
     private void FlipDirection()
