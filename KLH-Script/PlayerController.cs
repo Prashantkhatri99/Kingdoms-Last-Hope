@@ -24,28 +24,20 @@ public class PlayerController : MonoBehaviour
         {
             if (CanMove)
             {
-                if (IsMoving && !touchingDirections.IsOnWall)//player can move
+                if (IsMoving && !touchingDirections.IsOnWall) // Player can move
                 {
                     if (touchingDirections.IsGrounded)
                     {
-                        if (IsRunning)
-                            return runSpeed;
-                        else
-                            return walkSpeed;
+                        return IsRunning ? runSpeed : walkSpeed;
                     }
                     else
                     {
-                        // Air Move
-                        return airWalkSpeed;
+                        return airWalkSpeed; // Air Move
                     }
                 }
-                // Idle speed is 0
-                return 0;
+                return 0; // Idle speed is 0
             }
-            else
-            {
-                return 0;
-            }
+            return 0;
         }
     }
 
@@ -94,21 +86,8 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
-    public bool CanMove
-    {
-        get 
-        { 
-            return animator.GetBool(AnimationStrings.canMove); 
-        }
-    }
-
-    public bool IsAlive
-    {
-        get
-        {
-            return animator.GetBool(AnimationStrings.isAlive);
-        }
-    }
+    public bool CanMove => animator.GetBool(AnimationStrings.canMove);
+    public bool IsAlive => animator.GetBool(AnimationStrings.isAlive);
 
     private void Awake()
     {
@@ -119,19 +98,18 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        float targetSpeed = CurrentMoveSpeed;  // Define targetSpeed based on CurrentMoveSpeed
-        
+        float targetSpeed = CurrentMoveSpeed * moveInput.x;
+
         // Apply movement based on whether the player is on a platform
-        if (isOnPlatform && platformRb != null)  // Ensure platformRb is not null before using it
+        if (isOnPlatform && platformRb != null)  
         {
-            // Add platform's velocity to the player's velocity
             rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y); 
         }
         else
         {
             rb.velocity = new Vector2(targetSpeed, rb.velocity.y);
         }
-        
+
         if (animator != null)
             animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
     }
@@ -169,7 +147,7 @@ public class PlayerController : MonoBehaviour
         if (context.started && touchingDirections.IsGrounded && CanMove) 
         {
             if (animator != null)
-                animator.SetTrigger(AnimationStrings.jumpTrigger); // Updated
+                animator.SetTrigger(AnimationStrings.jumpTrigger); 
             rb.velocity = new Vector2(rb.velocity.x, jumpImpulse);
         }
     }
@@ -180,5 +158,26 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetTrigger(AnimationStrings.attackTrigger); 
         }
+    }
+
+    // New Code: Detect Obstacle Collision & Handle Death
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Obstacle")) // Check if player touches an obstacle
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        if (animator != null)
+        {
+            animator.SetBool(AnimationStrings.isAlive, false); // Set death animation
+            animator.SetTrigger(AnimationStrings.deathTrigger);
+        }
+
+        rb.velocity = Vector2.zero; // Stop player movement
+        this.enabled = false; // Disable the PlayerController script
     }
 }
