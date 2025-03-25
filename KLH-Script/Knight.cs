@@ -90,7 +90,7 @@ public class Enemy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isAttacking && !HasTarget)
+        if (!isAttacking && !HasTarget) //Knight has target 
         {
             if (touchingDirections.IsGrounded && touchingDirections.IsOnWall)
             {

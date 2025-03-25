@@ -144,7 +144,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.started && touchingDirections.IsGrounded && CanMove) 
+        if (context.started && touchingDirections.IsGrounded && CanMove) //Player Can touch direction and grounded
         {
             if (animator != null)
                 animator.SetTrigger(AnimationStrings.jumpTrigger); 
