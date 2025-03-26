@@ -18,7 +18,7 @@ public class Enemy : MonoBehaviour
     private Damageable targetHealth; // Store the Damageable component
     private bool isAttacking = false;
 
-    public enum WalkableDirection { Right, Left }
+    public enum WalkableDirection { Right, Left } //emu like a direction
     private WalkableDirection _walkDirection;
     private Vector2 walkDirectionVector = Vector2.right;
 
