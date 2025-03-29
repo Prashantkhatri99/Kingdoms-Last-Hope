@@ -72,3 +72,4 @@ public class MovingPlatform : MonoBehaviour
         }
     }
 }
+// make it so make
