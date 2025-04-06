@@ -4,15 +4,25 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private float startingHealth;
+    public float currentHealth { get; private set; }  // Expose currentHealth for reading, but restrict writing.
+
+    private void Awake()
     {
-        
+        currentHealth = startingHealth;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void TakeDamage(float _damage)
     {
-        
+        currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
+        if (currentHealth > 0)
+        {
+            // player hurt
+        }
+        else
+        {
+            // player dead
+        }
     }
+
 }

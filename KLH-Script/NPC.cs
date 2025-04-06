@@ -71,7 +71,6 @@ public class NPC : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             playerIsClose = true;
-            Debug.Log("Player is close"); 
         }
     }
 
