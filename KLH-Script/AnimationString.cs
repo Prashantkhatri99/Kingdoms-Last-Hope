@@ -13,5 +13,7 @@ public static class AnimationStrings
     public static string canMove = "canMove";
     public static string hasTarget = "hasTarget";
     public static string isAlive = "isAlive";
-    public static string deathTrigger = "death"; // 🔥 Added missing deathTrigger
+    public static string isHit = "isHit";
+    public static string hitTrigger = "hit";
+    public static string deathTrigger = "death"; 
 }

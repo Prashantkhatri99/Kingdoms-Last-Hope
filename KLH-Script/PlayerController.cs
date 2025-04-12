@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))]
+[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections), typeof(Damageable))]
 public class PlayerController : MonoBehaviour
 {
     public float walkSpeed = 5f; // Normal walking speed
@@ -12,6 +12,7 @@ public class PlayerController : MonoBehaviour
     public float jumpImpulse = 10f;
     private Vector2 moveInput;   // Stores player movement input
     TouchingDirections touchingDirections;
+    Damageable damageable;
     private Rigidbody2D rb;
     private Animator animator;
 
@@ -101,16 +102,20 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
+        damageable = GetComponent<Damageable>();
+        
     }
 
-    private void FixedUpdate()
+  private void FixedUpdate()
+{
+    if (!damageable.IsHit)
     {
         float targetSpeed = CurrentMoveSpeed * moveInput.x;
 
         // Apply movement based on whether the player is on a platform
-        if (isOnPlatform && platformRb != null)  
+        if (isOnPlatform && platformRb != null)
         {
-            rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y); 
+            rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y);
         }
         else
         {
@@ -120,6 +125,8 @@ public class PlayerController : MonoBehaviour
         if (animator != null)
             animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
     }
+}
+
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -165,6 +172,12 @@ public class PlayerController : MonoBehaviour
         {
             animator.SetTrigger(AnimationStrings.attackTrigger); 
         }
+    }
+
+    public void OnHit(int damage, Vector2 knockback)
+    {
+        rb.velocity = new Vector2(knockback.x, rb.velocity.y + knockback.y);
+
     }
 
     // New Code: Detect Obstacle Collision & Handle Death

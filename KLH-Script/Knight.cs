@@ -14,7 +14,7 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
-    private Transform target; 
+    private Transform target;
     private Damageable targetHealth;
     private bool isAttacking = false;
 
@@ -43,13 +43,13 @@ public class Enemy : MonoBehaviour
         private set
         {
             _hasTarget = value;
-            animator.SetBool("hasTarget", value); // Hardcoded to match Animator
+            animator.SetBool("hasTarget", value); // Animator parameter: hasTarget
         }
     }
 
     public bool CanMove
     {
-        get { return animator.GetBool("canMove"); } // Hardcoded to match Animator
+        get { return animator.GetBool("canMove"); } // Animator parameter: canMove
     }
 
     private void Awake()
@@ -119,7 +119,7 @@ public class Enemy : MonoBehaviour
         rb.velocity = Vector2.zero; // Stop movement
 
         Debug.Log("Setting attack trigger!");
-        animator.SetTrigger("Attack"); // Hardcoded trigger name
+        animator.SetTrigger("Attack"); // Animator trigger: Attack
 
         Debug.Log("Enemy attacking!");
 
@@ -127,7 +127,8 @@ public class Enemy : MonoBehaviour
 
         if (targetHealth != null && targetHealth.IsAlive)
         {
-            targetHealth.Hit(attackDamage);
+            //  FIXED: added knockback parameter (set to Vector2.zero for now)
+            targetHealth.Hit(attackDamage, Vector2.zero);
             Debug.Log("Enemy dealt " + attackDamage + " damage!");
         }
 

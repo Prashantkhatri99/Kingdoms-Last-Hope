@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Damageable : MonoBehaviour
 {
-    private Animator animator;
+    public UnityEvent<int, Vector2> damageableHit;
+    Animator animator;
     private PlayerController playerController; // Reference to PlayerController
 
     [SerializeField]
@@ -21,12 +23,13 @@ public class Damageable : MonoBehaviour
     public int Health
     {
         get { return _health; }
-        set 
-        { 
-            _health = Mathf.Clamp(value, 0, MaxHealth); // Ensure health never goes below 0
-            if (_health <= 0 && IsAlive)
+        set
+        {
+            _health = value;
+            if (_health <= 0)
             {
-                Die(); // Call the Die function when health is zero
+                IsAlive = false;
+                Die(); // Call Die when health drops to 0
             }
         }
     }
@@ -36,8 +39,8 @@ public class Damageable : MonoBehaviour
     public bool IsAlive
     {
         get { return _isAlive; }
-        set 
-        { 
+        set
+        {
             _isAlive = value;
             animator.SetBool(AnimationStrings.isAlive, value);
             Debug.Log("IsAlive set " + value);
@@ -46,8 +49,24 @@ public class Damageable : MonoBehaviour
 
     [SerializeField]
     private bool isInvincible = false;
+
+    public bool IsHit // Keep this single definition
+    {
+        get
+        {
+            return animator.GetBool(AnimationStrings.isHit);
+        }
+        private set
+        {
+            animator.SetBool(AnimationStrings.isHit, value); // ← just set it, don't return
+        }
+    }
+
     private float timeSinceHit = 0f;
     public float invincibilityTime = 0.25f;
+
+    [SerializeField]
+    private int healthRestore = 20;
 
     private void Awake()
     {
@@ -68,15 +87,6 @@ public class Damageable : MonoBehaviour
         }
     }
 
-    public void Hit(int damage)
-    {
-        if (IsAlive && !isInvincible)
-        {
-            Health -= damage;
-            isInvincible = true;
-        }
-    }
-
     private void Die()
     {
         IsAlive = false;
@@ -88,5 +98,38 @@ public class Damageable : MonoBehaviour
         {
             Debug.LogWarning("No PlayerController found on this GameObject.");
         }
+    }
+
+    public void Heal()
+    {
+        if (IsAlive)
+        {
+            Health += healthRestore;
+            CharacterEvents.characterHealed?.Invoke(gameObject, healthRestore);
+        }
+    }
+
+    // Added the Hit method to handle damage and knockback
+    public bool Hit(int damage, Vector2 knockback)
+    {
+        if (!IsAlive || isInvincible) return false;
+
+        Health -= damage;
+        isInvincible = true;
+
+        // Handle knockback (for example, if you want to move the object after being hit)
+        // You can modify this part based on your knockback logic.
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.AddForce(knockback, ForceMode2D.Impulse);
+        }
+
+        animator.SetTrigger(AnimationStrings.hitTrigger);
+
+        // Invoke event if needed
+        damageableHit?.Invoke(damage, knockback);
+
+        return true;
     }
 }
