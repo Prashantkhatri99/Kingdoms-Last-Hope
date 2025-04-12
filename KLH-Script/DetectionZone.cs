@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class DetectionZone : MonoBehaviour
 {
     public List<Collider2D> detectedColliders = new List<Collider2D>();
@@ -11,22 +12,24 @@ public class DetectionZone : MonoBehaviour
         col = GetComponent<Collider2D>();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerEnter2D(Collider2D other)
     {
-if (collision.gameObject.CompareTag("Player")) // Replace "Player" with the correct tag
-{
-    Debug.Log("Added one: " + collision.gameObject.name);
-    detectedColliders.Add(collision);
-}
-
-       
+        if (other.CompareTag("Player"))
+        {
+            if (!detectedColliders.Contains(other))
+            {
+                detectedColliders.Add(other);
+                Debug.Log("Player entered detection zone.");
+            }
+        }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    void OnTriggerExit2D(Collider2D other)
     {
-        if(collision.gameObject.CompareTag("Player")){
-                    detectedColliders.Remove(collision);
+        if (detectedColliders.Contains(other))
+        {
+            detectedColliders.Remove(other);
+            Debug.Log("Player exited detection zone.");
         }
-
     }
 }

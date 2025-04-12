@@ -10,15 +10,15 @@ public class Enemy : MonoBehaviour
     public float attackCooldown = 1.5f; // Time between attacks
     public int attackDamage = 10; // Damage dealt per attack
     public DetectionZone attackZone;
-    
+
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
     private Transform target; 
-    private Damageable targetHealth; // Store the Damageable component
+    private Damageable targetHealth;
     private bool isAttacking = false;
 
-    public enum WalkableDirection { Right, Left } //emu like a direction
+    public enum WalkableDirection { Right, Left }
     private WalkableDirection _walkDirection;
     private Vector2 walkDirectionVector = Vector2.right;
 
@@ -43,13 +43,13 @@ public class Enemy : MonoBehaviour
         private set
         {
             _hasTarget = value;
-            animator.SetBool(AnimationStrings.hasTarget, value);
+            animator.SetBool("hasTarget", value); // Hardcoded to match Animator
         }
     }
 
     public bool CanMove
     {
-        get { return animator.GetBool(AnimationStrings.canMove); }
+        get { return animator.GetBool("canMove"); } // Hardcoded to match Animator
     }
 
     private void Awake()
@@ -66,18 +66,18 @@ public class Enemy : MonoBehaviour
             if (!HasTarget)
             {
                 HasTarget = true;
-                target = attackZone.detectedColliders[0].transform; // Assign target
-                targetHealth = target.GetComponent<Damageable>(); // Get Damageable component
+                target = attackZone.detectedColliders[0].transform;
+                targetHealth = target.GetComponent<Damageable>();
             }
 
             if (!isAttacking)
             {
-                MoveTowardTarget(); // Move toward player
+                MoveTowardTarget();
             }
 
             if (!isAttacking)
             {
-                StartCoroutine(Attack()); // Start attack cycle
+                StartCoroutine(Attack());
             }
         }
         else
@@ -90,7 +90,7 @@ public class Enemy : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!isAttacking && !HasTarget) //Knight has target 
+        if (!isAttacking && !HasTarget)
         {
             if (touchingDirections.IsGrounded && touchingDirections.IsOnWall)
             {
@@ -117,19 +117,21 @@ public class Enemy : MonoBehaviour
     {
         isAttacking = true;
         rb.velocity = Vector2.zero; // Stop movement
-        animator.SetTrigger(AnimationStrings.attackTrigger);
+
+        Debug.Log("Setting attack trigger!");
+        animator.SetTrigger("Attack"); // Hardcoded trigger name
+
         Debug.Log("Enemy attacking!");
 
-        yield return new WaitForSeconds(0.5f); // Wait before applying damage
+        yield return new WaitForSeconds(0.5f); // Wind-up time
 
-        // Apply damage if target is still in range
         if (targetHealth != null && targetHealth.IsAlive)
         {
             targetHealth.Hit(attackDamage);
             Debug.Log("Enemy dealt " + attackDamage + " damage!");
         }
 
-        yield return new WaitForSeconds(attackCooldown - 0.5f); // Wait for remaining cooldown
+        yield return new WaitForSeconds(attackCooldown - 0.5f);
 
         isAttacking = false;
     }

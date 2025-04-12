@@ -86,8 +86,15 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
-    public bool CanMove => animator.GetBool(AnimationStrings.canMove);
-    public bool IsAlive => animator.GetBool(AnimationStrings.isAlive);
+    public bool CanMove {get
+    {
+        return animator.GetBool(AnimationStrings.canMove);
+
+    }} 
+    public bool IsAlive{get
+    {
+        return animator.GetBool(AnimationStrings.isAlive);
+    }} 
 
     private void Awake()
     {
