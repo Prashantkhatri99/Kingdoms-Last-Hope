@@ -9,7 +9,8 @@ public class SceneController : MonoBehaviour
 
     private void Awake()
     {
-        if(instance == null)
+        // Singleton pattern to keep one instance alive
+        if (instance == null)
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
@@ -19,14 +20,43 @@ public class SceneController : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    /// <summary>
+    /// Loads the next scene in the Build Settings.
+    /// </summary>
     public void NextLevel()
     {
-        SceneManager. LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIndex = currentSceneIndex + 1;
+
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadSceneAsync(nextSceneIndex);
+        }
+        else
+        {
+            Debug.LogError("NextLevel failed: No next scene found in Build Settings!");
+        }
     }
 
-    public void LoadScene(string SceneName)
+    /// <summary>
+    /// Loads a scene by name, with validation.
+    /// </summary>
+    /// <param name="sceneName">Name of the scene to load</param>
+    public void LoadScene(string sceneName)
     {
-        SceneManager.LoadSceneAsync(SceneName); // making sure the player goes to new scene
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogError("LoadScene failed: Scene name is null or empty!");
+            return;
+        }
+
+        if (!Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            Debug.LogError($"LoadScene failed: Scene '{sceneName}' is not in Build Settings!");
+            return;
+        }
+
+        SceneManager.LoadSceneAsync(sceneName);
     }
- 
 }
