@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     private Rigidbody2D rb;
     private TouchingDirections touchingDirections;
     private Animator animator;
+    Damageable damageable;
     private Transform target;
     private Damageable targetHealth;
     private bool isAttacking = false;
@@ -57,7 +58,8 @@ public class Enemy : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         touchingDirections = GetComponent<TouchingDirections>();
         animator = GetComponent<Animator>();
-    }
+        damageable = GetComponent<Damageable>(); // This line was missing the closing brace for the Awake method
+    } // <-- Close the Awake method properly
 
     private void Update()
     {
@@ -97,10 +99,13 @@ public class Enemy : MonoBehaviour
                 FlipDirection();
             }
 
-            if (CanMove)
-                rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
-            else
-                rb.velocity = new Vector2(Mathf.Lerp(rb.velocity.x, 0, walkStopRate * Time.deltaTime), rb.velocity.y);
+            if (!damageable.LockVelocity)
+            {
+                if (CanMove)
+                    rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
+                else
+                    rb.velocity = new Vector2(Mathf.Lerp(rb.velocity.x, 0, walkStopRate * Time.deltaTime), rb.velocity.y);
+            }
         }
     }
 
@@ -127,8 +132,7 @@ public class Enemy : MonoBehaviour
 
         if (targetHealth != null && targetHealth.IsAlive)
         {
-            //  FIXED: added knockback parameter (set to Vector2.zero for now)
-            targetHealth.Hit(attackDamage, Vector2.zero);
+            targetHealth.Hit(attackDamage, Vector2.zero); // knockback is Vector2.zero
             Debug.Log("Enemy dealt " + attackDamage + " damage!");
         }
 
@@ -140,5 +144,10 @@ public class Enemy : MonoBehaviour
     private void FlipDirection()
     {
         WalkDirection = (WalkDirection == WalkableDirection.Right) ? WalkableDirection.Left : WalkableDirection.Right;
+    }
+
+    public void OnHit(int damage, Vector2 knockback)
+    {
+        rb.velocity = new Vector2(knockback.x, rb.velocity.y + knockback.y);
     }
 }

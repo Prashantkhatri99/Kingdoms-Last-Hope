@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections))]
+[RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections), typeof(Damageable))]
 public class PlayerController : MonoBehaviour
 {
     public float walkSpeed = 5f; // Normal walking speed
@@ -21,6 +21,11 @@ public class PlayerController : MonoBehaviour
         get
         {
             return animator.GetBool(AnimationStrings.lockVelocity);
+        }
+        set
+        {
+            animator.SetBool(AnimationStrings.lockVelocity, value);
+         
         }
     }
 
@@ -116,11 +121,12 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
+        damageable = GetComponent<Damageable>();
     }
 
     private void FixedUpdate()
     {
-        if (!LockVelocity)
+        if (!damageable.LockVelocity)
         {
             float targetSpeed = CurrentMoveSpeed * moveInput.x;
 
@@ -187,7 +193,6 @@ public class PlayerController : MonoBehaviour
 
     public void OnHit(int damage, Vector2 knockback)
     {
-        animator.SetBool(AnimationStrings.lockVelocity, true); //Set animator bool directly
         rb.velocity = new Vector2(knockback.x, rb.velocity.y + knockback.y);
     }
 

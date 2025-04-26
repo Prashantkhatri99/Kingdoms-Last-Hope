@@ -32,4 +32,14 @@ public class DetectionZone : MonoBehaviour
             Debug.Log("Player exited detection zone.");
         }
     }
+
+    // Optional: Method to get the first detected player
+    public Collider2D GetDetectedPlayer()
+    {
+        if (detectedColliders.Count > 0)
+        {
+            return detectedColliders[0]; // Return first player in the list
+        }
+        return null;
+    }
 }
