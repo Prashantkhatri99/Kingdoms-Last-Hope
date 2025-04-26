@@ -16,10 +16,13 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Animator animator;
 
-    public bool LockVelocity{get
+    public bool LockVelocity
     {
-        return animator.SetBool(AnimationStrings.lockVelocity);
-    }}
+        get
+        {
+            return animator.GetBool(AnimationStrings.lockVelocity);
+        }
+    }
 
     public bool isOnPlatform;  // Added variable
     public Rigidbody2D platformRb;  // Added variable
@@ -92,46 +95,49 @@ public class PlayerController : MonoBehaviour
         } 
     }
 
-    public bool CanMove {get
+    public bool CanMove
     {
-        return animator.GetBool(AnimationStrings.canMove);
+        get
+        {
+            return animator.GetBool(AnimationStrings.canMove);
+        }
+    }
 
-    }} 
-    public bool IsAlive{get
+    public bool IsAlive
     {
-        return animator.GetBool(AnimationStrings.isAlive);
-    }} 
+        get
+        {
+            return animator.GetBool(AnimationStrings.isAlive);
+        }
+    }
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
-       
-        
     }
 
-  private void FixedUpdate()
-{
-    if (!LockVelocity)
+    private void FixedUpdate()
     {
-        float targetSpeed = CurrentMoveSpeed * moveInput.x;
-
-        // Apply movement based on whether the player is on a platform
-        if (isOnPlatform && platformRb != null)
+        if (!LockVelocity)
         {
-            rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y);
-        }
-        else
-        {
-            rb.velocity = new Vector2(targetSpeed, rb.velocity.y);
-        }
+            float targetSpeed = CurrentMoveSpeed * moveInput.x;
 
-        if (animator != null)
-            animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
+            // Apply movement based on whether the player is on a platform
+            if (isOnPlatform && platformRb != null)
+            {
+                rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y);
+            }
+            else
+            {
+                rb.velocity = new Vector2(targetSpeed, rb.velocity.y);
+            }
+
+            if (animator != null)
+                animator.SetFloat(AnimationStrings.yVelocity, rb.velocity.y);
+        }
     }
-}
-
 
     public void OnMove(InputAction.CallbackContext context)
     {
@@ -181,8 +187,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnHit(int damage, Vector2 knockback)
     {
+        animator.SetBool(AnimationStrings.lockVelocity, true); //Set animator bool directly
         rb.velocity = new Vector2(knockback.x, rb.velocity.y + knockback.y);
-
     }
 
     // New Code: Detect Obstacle Collision & Handle Death
