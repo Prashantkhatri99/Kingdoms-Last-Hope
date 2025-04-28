@@ -9,6 +9,7 @@ public class Attack : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("Attack hit " + collision.name);
         // See if it can be hit
         Damageable damageable = collision.GetComponent<Damageable>();
         if (damageable != null)

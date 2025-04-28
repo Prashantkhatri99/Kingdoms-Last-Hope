@@ -129,6 +129,8 @@ public class Damageable : MonoBehaviour
         Health -= damage;
         isInvincible = true;
 
+        IsHit = true;
+
         // Handle knockback (for example, if you want to move the object after being hit)
         // You can modify this part based on your knockback logic.
         Rigidbody2D rb = GetComponent<Rigidbody2D>();

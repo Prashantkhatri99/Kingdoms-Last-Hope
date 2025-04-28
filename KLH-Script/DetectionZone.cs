@@ -13,16 +13,24 @@ public class DetectionZone : MonoBehaviour
     }
 
     void OnTriggerEnter2D(Collider2D other)
+{
+    if (other.CompareTag("Player"))
     {
-        if (other.CompareTag("Player"))
+        if (!detectedColliders.Contains(other))
         {
-            if (!detectedColliders.Contains(other))
+            detectedColliders.Add(other);
+            Debug.Log("Player entered detection zone.");
+
+            // Notify the enemy
+            Enemy enemy = GetComponentInParent<Enemy>();
+            if (enemy != null)
             {
-                detectedColliders.Add(other);
-                Debug.Log("Player entered detection zone.");
+                enemy.SetTarget(other.transform);
             }
         }
     }
+}
+
 
     void OnTriggerExit2D(Collider2D other)
     {

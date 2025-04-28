@@ -37,7 +37,7 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    private bool _hasTarget = false;
+    [SerializeField]private bool _hasTarget = false;
     public bool HasTarget
     {
         get { return _hasTarget; }
@@ -61,34 +61,39 @@ public class Enemy : MonoBehaviour
         damageable = GetComponent<Damageable>(); // This line was missing the closing brace for the Awake method
     } // <-- Close the Awake method properly
 
-    private void Update()
+ private void Update()
+{
+    if (attackZone.detectedColliders.Count > 0)
     {
-        if (attackZone.detectedColliders.Count > 0)
+        if (target != null)
         {
-            if (!HasTarget)
-            {
-                HasTarget = true;
-                target = attackZone.detectedColliders[0].transform;
-                targetHealth = target.GetComponent<Damageable>();
-            }
+            float distanceToTarget = Vector2.Distance(target.position, transform.position);
 
-            if (!isAttacking)
+            if (distanceToTarget <= 1.5f)
             {
-                MoveTowardTarget();
+                if (!isAttacking)
+                {
+                    StartCoroutine(Attack());
+                }
             }
-
-            if (!isAttacking)
+            else
             {
-                StartCoroutine(Attack());
+                if (!isAttacking)
+                {
+                    MoveTowardTarget();
+                }
             }
-        }
-        else
-        {
-            HasTarget = false;
-            target = null;
-            targetHealth = null;
         }
     }
+    else
+    {
+        HasTarget = false;
+        target = null;
+        targetHealth = null;
+    }
+}
+
+
 
     private void FixedUpdate()
     {
@@ -117,6 +122,13 @@ public class Enemy : MonoBehaviour
         WalkDirection = (direction > 0) ? WalkableDirection.Right : WalkableDirection.Left;
         rb.velocity = new Vector2(walkSpeed * walkDirectionVector.x, rb.velocity.y);
     }
+
+    public void SetTarget(Transform newTarget)
+{
+    HasTarget = true;
+    target = newTarget;
+    targetHealth = newTarget.GetComponent<Damageable>();
+}
 
     private IEnumerator Attack()
     {
