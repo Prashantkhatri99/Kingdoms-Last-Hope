@@ -52,7 +52,6 @@ public class Enemy : MonoBehaviour
     {
         get { return animator.GetBool("canMove"); } // Animator parameter: canMove
     }
-
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -65,33 +64,40 @@ public class Enemy : MonoBehaviour
 {
     if (attackZone.detectedColliders.Count > 0)
     {
-        if (target != null)
+        if (target == null)
         {
-            float distanceToTarget = Vector2.Distance(target.position, transform.position);
+            Transform newTarget = attackZone.detectedColliders[0].transform;
+            SetTarget(newTarget);
+        }
 
-            if (distanceToTarget <= 1.5f)
+        float distanceToTarget = Vector2.Distance(target.position, transform.position);
+
+        if (distanceToTarget <= 1.5f)
+        {
+            if (!isAttacking)
             {
-                if (!isAttacking)
-                {
-                    StartCoroutine(Attack());
-                }
+                StartCoroutine(Attack());
             }
-            else
+        }
+        else
+        {
+            if (!isAttacking)
             {
-                if (!isAttacking)
-                {
-                    MoveTowardTarget();
-                }
+                MoveTowardTarget();
             }
         }
     }
-    else
-    {
-        HasTarget = false;
-        target = null;
-        targetHealth = null;
-    }
 }
+public Transform Target => target; // Add a getter for current target
+
+public void ClearTarget()
+{
+    Debug.Log("Enemy lost target.");
+    HasTarget = false;
+    target = null;
+    targetHealth = null;
+}
+
 
 
 
@@ -127,6 +133,7 @@ public class Enemy : MonoBehaviour
 {
     HasTarget = true;
     target = newTarget;
+    Debug.Log("Enemy has target: " + target.name);
     targetHealth = newTarget.GetComponent<Damageable>();
 }
 

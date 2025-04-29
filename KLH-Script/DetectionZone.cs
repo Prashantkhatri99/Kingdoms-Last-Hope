@@ -33,13 +33,19 @@ public class DetectionZone : MonoBehaviour
 
 
     void OnTriggerExit2D(Collider2D other)
+{
+    if (detectedColliders.Contains(other))
     {
-        if (detectedColliders.Contains(other))
+        detectedColliders.Remove(other);
+        Debug.Log("Player exited detection zone.");
+
+        Enemy enemy = GetComponentInParent<Enemy>();
+        if (enemy != null && other.transform == enemy.Target)
         {
-            detectedColliders.Remove(other);
-            Debug.Log("Player exited detection zone.");
+            enemy.ClearTarget();
         }
     }
+}
 
     // Optional: Method to get the first detected player
     public Collider2D GetDetectedPlayer()

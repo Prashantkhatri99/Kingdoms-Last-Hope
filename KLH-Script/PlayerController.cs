@@ -210,7 +210,7 @@ public class PlayerController : MonoBehaviour
         if (animator != null)
         {
             animator.SetBool(AnimationStrings.isAlive, false); // Set death animation
-            animator.SetTrigger(AnimationStrings.deathTrigger);
+            // animator.SetTrigger(AnimationStrings.deathTrigger);
         }
 
         rb.velocity = Vector2.zero; // Stop player movement

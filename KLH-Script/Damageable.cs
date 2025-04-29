@@ -6,30 +6,30 @@ using UnityEngine.Events;
 public class Damageable : MonoBehaviour
 {
     public UnityEvent<int, Vector2> damageableHit;
-    Animator animator;
+
+    private Animator animator;
     private PlayerController playerController; // Reference to PlayerController
+    private Rigidbody2D rb; // Cache Rigidbody2D for knockback
 
     [SerializeField]
     private int _maxHealth = 100;
-
     public int MaxHealth
     {
-        get { return _maxHealth; }
-        set { _maxHealth = value; }
+        get => _maxHealth;
+        set => _maxHealth = value;
     }
 
     [SerializeField]
     private int _health = 100;
     public int Health
     {
-        get { return _health; }
+        get => _health;
         set
         {
             _health = value;
             if (_health <= 0)
             {
-                IsAlive = false;
-                Die(); // Call Die when health drops to 0
+                Die();
             }
         }
     }
@@ -38,39 +38,35 @@ public class Damageable : MonoBehaviour
     private bool _isAlive = true;
     public bool IsAlive
     {
-        get { return _isAlive; }
+        get => _isAlive;
         set
         {
             _isAlive = value;
-            animator.SetBool(AnimationStrings.isAlive, value);
-            Debug.Log("IsAlive set " + value);
+            if (animator != null)
+                animator.SetBool(AnimationStrings.isAlive, value);
         }
     }
 
     public bool LockVelocity
     {
-        get
-        {
-            return animator.GetBool(AnimationStrings.lockVelocity);
-        }
+        get => animator != null && animator.GetBool(AnimationStrings.lockVelocity);
         set
         {
-            animator.SetBool(AnimationStrings.lockVelocity, value);
+            if (animator != null)
+                animator.SetBool(AnimationStrings.lockVelocity, value);
         }
     }
 
     [SerializeField]
     private bool isInvincible = false;
 
-    public bool IsHit // Keep this single definition
+    public bool IsHit
     {
-        get
-        {
-            return animator.GetBool(AnimationStrings.isHit);
-        }
+        get => animator != null && animator.GetBool(AnimationStrings.isHit);
         private set
         {
-            animator.SetBool(AnimationStrings.isHit, value); // ← just set it, don't return
+            if (animator != null)
+                animator.SetBool(AnimationStrings.isHit, value);
         }
     }
 
@@ -82,67 +78,70 @@ public class Damageable : MonoBehaviour
 
     private void Awake()
     {
-        animator = GetComponent<Animator>();
-        playerController = GetComponent<PlayerController>(); // Get PlayerController component
+        TryGetComponent(out animator);
+        TryGetComponent(out playerController);
+        TryGetComponent(out rb);
     }
 
     private void Update()
     {
         if (isInvincible)
         {
+            timeSinceHit += Time.deltaTime;
             if (timeSinceHit > invincibilityTime)
             {
                 isInvincible = false;
-                timeSinceHit = 0;
+                timeSinceHit = 0f;
             }
-            timeSinceHit += Time.deltaTime;
         }
     }
 
     private void Die()
     {
+        if (!IsAlive) return;
+
         IsAlive = false;
+
         if (playerController != null)
         {
-            playerController.SendMessage("Die"); // Call Die() in PlayerController
+            playerController.SendMessage("Die", SendMessageOptions.DontRequireReceiver);
         }
         else
         {
-            Debug.LogWarning("No PlayerController found on this GameObject.");
+            Debug.LogWarning($"{gameObject.name} has no PlayerController but tried to Die.");
         }
     }
 
     public void Heal()
     {
-        if (IsAlive)
-        {
-            Health += healthRestore;
-            CharacterEvents.characterHealed?.Invoke(gameObject, healthRestore);
-        }
+        if (!IsAlive) return;
+
+        Health = Mathf.Min(Health + healthRestore, MaxHealth); // Don't overheal
+        CharacterEvents.characterHealed?.Invoke(gameObject, healthRestore);
     }
 
-    // Added the Hit method to handle damage and knockback
     public bool Hit(int damage, Vector2 knockback)
     {
         if (!IsAlive || isInvincible) return false;
 
         Health -= damage;
         isInvincible = true;
+        timeSinceHit = 0f; // Reset timer
 
         IsHit = true;
 
-        // Handle knockback (for example, if you want to move the object after being hit)
-        // You can modify this part based on your knockback logic.
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null)
         {
             rb.AddForce(knockback, ForceMode2D.Impulse);
         }
 
-        animator.SetTrigger(AnimationStrings.hitTrigger);
-        LockVelocity = true; // Lock velocity when hit
+        if (animator != null)
+        {
+            animator.SetTrigger(AnimationStrings.hitTrigger);
+        }
 
-        // Invoke event if needed
+        LockVelocity = true;
+
         damageableHit?.Invoke(damage, knockback);
 
         return true;
