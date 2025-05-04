@@ -12,20 +12,19 @@ public class UIManager : MonoBehaviour
     private void Awake()
     {
         gameCanvas = FindObjectOfType<Canvas>();
-        CharacterEvents.characterDamaged.AddListener(CharacterTookDamage);
-        CharacterEvents.characterHealed.AddListener(CharacterHealed);
+     
     }
 
     private void OnEnable()
     {
-        CharacterEvents.characterDamaged.AddListener(CharacterTookDamage);
-        CharacterEvents.characterHealed.AddListener(CharacterHealed);
+        CharacterEvents.characterDamaged +=(CharacterTookDamage);
+        CharacterEvents.characterHealed +=(CharacterHealed);
     }
 
     private void OnDisable()
     {
-        CharacterEvents.characterDamaged.RemoveListener(CharacterTookDamage);
-        CharacterEvents.characterHealed.RemoveListener(CharacterHealed);
+        CharacterEvents.characterDamaged -=(CharacterTookDamage);
+        CharacterEvents.characterHealed -=(CharacterHealed);
     }
 
     public void CharacterTookDamage(GameObject character, int damageReceived)
