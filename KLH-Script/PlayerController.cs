@@ -6,31 +6,28 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody2D), typeof(TouchingDirections), typeof(Damageable))]
 public class PlayerController : MonoBehaviour
 {
-    public float walkSpeed = 5f; // Normal walking speed
-    public float runSpeed = 8f;  // Running speed
+     public Inventory inventory; 
+    public float walkSpeed = 5f;
+    public float runSpeed = 8f;
     public float airWalkSpeed = 3f;
     public float jumpImpulse = 10f;
-    private Vector2 moveInput;   // Stores player movement input
+    private Vector2 moveInput;
+
     TouchingDirections touchingDirections;
     Damageable damageable;
     private Rigidbody2D rb;
     private Animator animator;
 
+   
+
     public bool LockVelocity
     {
-        get
-        {
-            return animator.GetBool(AnimationStrings.lockVelocity);
-        }
-        set
-        {
-            animator.SetBool(AnimationStrings.lockVelocity, value);
-         
-        }
+        get => animator.GetBool(AnimationStrings.lockVelocity);
+        set => animator.SetBool(AnimationStrings.lockVelocity, value);
     }
 
-    public bool isOnPlatform;  // Added variable
-    public Rigidbody2D platformRb;  // Added variable
+    public bool isOnPlatform;
+    public Rigidbody2D platformRb;
 
     public float CurrentMoveSpeed
     {
@@ -38,18 +35,11 @@ public class PlayerController : MonoBehaviour
         {
             if (CanMove)
             {
-                if (IsMoving && !touchingDirections.IsOnWall) // Player can move
+                if (IsMoving && !touchingDirections.IsOnWall)
                 {
-                    if (touchingDirections.IsGrounded)
-                    {
-                        return IsRunning ? runSpeed : walkSpeed;
-                    }
-                    else
-                    {
-                        return airWalkSpeed; // Air Move
-                    }
+                    return touchingDirections.IsGrounded ? (IsRunning ? runSpeed : walkSpeed) : airWalkSpeed;
                 }
-                return 0; // Idle speed is 0
+                return 0;
             }
             return 0;
         }
@@ -60,11 +50,11 @@ public class PlayerController : MonoBehaviour
 
     public bool IsMoving
     {
-        get { return _isMoving; }
+        get => _isMoving;
         private set
         {
             _isMoving = value;
-            if (animator != null) 
+            if (animator != null)
                 animator.SetBool(AnimationStrings.isMoving, value);
         }
     }
@@ -74,47 +64,34 @@ public class PlayerController : MonoBehaviour
 
     public bool IsRunning
     {
-        get { return _isRunning; }
+        get => _isRunning;
         private set
         {
             _isRunning = value;
-            if (animator != null) 
+            if (animator != null)
                 animator.SetBool(AnimationStrings.isRunning, value);
         }
     }
 
     public bool _isFacingRight = true;
 
-    public bool IsFacingRight 
-    { 
-        get { return _isFacingRight; } 
+    public bool IsFacingRight
+    {
+        get => _isFacingRight;
         private set
         {
-            if (_isFacingRight != value) 
+            if (_isFacingRight != value)
             {
-                _isFacingRight = value; 
+                _isFacingRight = value;
                 Vector3 newScale = transform.localScale;
                 newScale.x = Mathf.Abs(newScale.x) * (_isFacingRight ? 1 : -1);
                 transform.localScale = newScale;
             }
-        } 
-    }
-
-    public bool CanMove
-    {
-        get
-        {
-            return animator.GetBool(AnimationStrings.canMove);
         }
     }
 
-    public bool IsAlive
-    {
-        get
-        {
-            return animator.GetBool(AnimationStrings.isAlive);
-        }
-    }
+    public bool CanMove => animator.GetBool(AnimationStrings.canMove);
+    public bool IsAlive => animator.GetBool(AnimationStrings.isAlive);
 
     private void Awake()
     {
@@ -122,6 +99,8 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         touchingDirections = GetComponent<TouchingDirections>();
         damageable = GetComponent<Damageable>();
+
+        inventory = new Inventory(10); // ✅ Initialize Inventory with 10 slots
     }
 
     private void FixedUpdate()
@@ -130,7 +109,6 @@ public class PlayerController : MonoBehaviour
         {
             float targetSpeed = CurrentMoveSpeed * moveInput.x;
 
-            // Apply movement based on whether the player is on a platform
             if (isOnPlatform && platformRb != null)
             {
                 rb.velocity = new Vector2(targetSpeed + platformRb.velocity.x, rb.velocity.y);
@@ -148,6 +126,7 @@ public class PlayerController : MonoBehaviour
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
+
         if (IsAlive)
         {
             IsMoving = moveInput != Vector2.zero;
@@ -175,10 +154,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.started && touchingDirections.IsGrounded && CanMove) //Player Can touch direction and grounded
+        if (context.started && touchingDirections.IsGrounded && CanMove)
         {
             if (animator != null)
-                animator.SetTrigger(AnimationStrings.jumpTrigger); 
+                animator.SetTrigger(AnimationStrings.jumpTrigger);
             rb.velocity = new Vector2(rb.velocity.x, jumpImpulse);
         }
     }
@@ -187,7 +166,7 @@ public class PlayerController : MonoBehaviour
     {
         if (context.started)
         {
-            animator.SetTrigger(AnimationStrings.attackTrigger); 
+            animator.SetTrigger(AnimationStrings.attackTrigger);
         }
     }
 
@@ -196,10 +175,9 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(knockback.x, rb.velocity.y + knockback.y);
     }
 
-    // New Code: Detect Obstacle Collision & Handle Death
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Obstacle")) // Check if player touches an obstacle
+        if (collision.CompareTag("Obstacle"))
         {
             Die();
         }
@@ -209,11 +187,11 @@ public class PlayerController : MonoBehaviour
     {
         if (animator != null)
         {
-            animator.SetBool(AnimationStrings.isAlive, false); // Set death animation
+            animator.SetBool(AnimationStrings.isAlive, false);
             // animator.SetTrigger(AnimationStrings.deathTrigger);
         }
 
-        rb.velocity = Vector2.zero; // Stop player movement
-        this.enabled = false; // Disable the PlayerController script
+        rb.velocity = Vector2.zero;
+        this.enabled = false;
     }
 }
