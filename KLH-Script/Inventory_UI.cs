@@ -31,20 +31,29 @@ public class Inventory_UI : MonoBehaviour
     }
 
     void Setup()
+{
+    if (slots.Count == player.inventory.slots.Count)
     {
-        if (slots.Count == player.inventory.slots.Count)
+        for (int i = 0; i < slots.Count; i++)
         {
-            for (int i = 0; i < slots.Count; i++)
+            var invSlot = player.inventory.slots[i];
+            if (invSlot.type != CollectableType.NONE)
             {
-                if (player.inventory.slots[i].type != CollectableType.NONE)
-                {
-                    slots[i].SetItem(player.inventory.slots[i]);
-                }
-                else
-                {
-                    slots[i].SetEmpty();
-                }
+                Debug.Log($"Setting slot {i} with item {invSlot.type}, count: {invSlot.count}");
+                slots[i].SetItem(invSlot);
+            }
+            else
+            {
+                Debug.Log($"Clearing slot {i}");
+                slots[i].SetEmpty();
             }
         }
     }
+    else
+    {
+        Debug.LogWarning($"Slots count mismatch: UI slots = {slots.Count}, inventory slots = {player.inventory.slots.Count}");
+    }
 }
+
+    }
+

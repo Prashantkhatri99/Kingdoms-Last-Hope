@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
 public class Inventory
 {
     [System.Serializable]
@@ -10,14 +10,14 @@ public class Inventory
         public CollectableType type;
         public int count;
         public int maxAllowed;
-        public Sprite icon;  // ✅ Added the icon field to represent the item's icon.
+        public Sprite icon;
 
         public Slot()
         {
             type = CollectableType.NONE;
             count = 0;
             maxAllowed = 99;
-            icon = null;  // You can set a default icon here or when items are added to the inventory.
+            icon = null;
         }
 
         public bool CanAddItem()
@@ -25,10 +25,12 @@ public class Inventory
             return count < maxAllowed;
         }
 
-        public void AddItem(CollectableType type)
+        public void AddItem(CollectableType type, Sprite icon = null)
         {
             this.type = type;
             count++;
+            if (this.icon == null && icon != null)
+                this.icon = icon;
         }
     }
 
@@ -43,21 +45,22 @@ public class Inventory
         }
     }
 
-    public void Add(CollectableType typeToAdd)
+    public void Add(CollectableType typeToAdd, Sprite icon = null)
     {
         foreach (Slot slot in slots)
         {
             if (slot.type == typeToAdd && slot.CanAddItem())
             {
-                slot.AddItem(typeToAdd);
+                slot.AddItem(typeToAdd); // Icon already assigned in slot
                 return;
             }
         }
+
         foreach (Slot slot in slots)
         {
             if (slot.type == CollectableType.NONE)
             {
-                slot.AddItem(typeToAdd);
+                slot.AddItem(typeToAdd, icon); // Assign icon on first insert
                 return;
             }
         }
@@ -67,5 +70,7 @@ public class Inventory
 public enum CollectableType
 {
     NONE,
-    CARROT_SEED
+    CARROT_SEED,
+    POTATO_SEED,
+    // Add other types as needed
 }
